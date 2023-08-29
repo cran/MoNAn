@@ -1,0 +1,55 @@
+# functions to be exported
+export(
+  
+  # core functions
+  createAlgorithm, createEdgelist, createEffectsObject, createNetwork, 
+  createNodeSet, createNodeVariable, createProcessState, createWeightedCache,
+  estimateMobilityNetwork, estimateDistributionNetwork, 
+  simulateMobilityNetworks, simulateDistributionNetworks,
+  
+  # auxiliary functions
+  autoCorrelationTest, extractTraces, 
+  getMultinomialStatistics, gofDistributionNetwork, gofMobilityNetwork, 
+  plot.gof.stats.monan, 
+  plot.traces.monan, print.result.monan, print.scoretest.monan, scoreTest,
+  
+  # effect functions: exogenous
+  alter_covariate, dyadic_covariate,
+  dyadic_covariate_resource_attribute,
+  resource_covar_to_node_covar, 
+  same_covariate, sim_covariate,
+  
+  # effect functions: loops
+  loops, loops_GW, loops_node_covar, 
+  loops_resource_covar_node_covar, loops_resource_covar, 
+
+  # effect functions: concentration
+  concentration_basic, concentration_GW, concentration_GW_dyad_covar_bin,
+
+  # effect functions: reciprocity
+  reciprocity_basic,
+  reciprocity_min, reciprocity_min_resource_covar,
+  reciprocity_GW, reciprocity_GW_dyad_covar_bin,
+  
+  # effect functions: transitivity
+  transitivity_min, transitivity_netflow,
+  
+  # effect functions: other
+  crowding_out_prop_covar_bin,  
+  in_ties_loops, in_weights_exponent, 
+  present_relations,  staying_by_prop_bin_inflow, 
+
+  # gof param functions
+  getIndegree, getTieWeights
+)
+
+importFrom("graphics", "boxplot", "lines")
+importFrom("stats", "as.formula", "ecdf", "pnorm", "runif", "sd")
+importFrom("methods", "is")
+importFrom("snowfall", "sfInit", "sfExport", "sfLapply", "sfLibrary", "sfStop")
+
+# S3 methods
+S3method(print, result.monan)
+S3method(plot, traces.monan)
+S3method(plot, gof.stats.monan)
+S3method(print, scoretest.monan)
