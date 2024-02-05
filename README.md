@@ -29,22 +29,36 @@ characteristics of individuals, it is an ERGM for weighted networks.
 Announcements about workshops etc. can be found
 [here](https://www.suz.uzh.ch/de/institut/professuren/block/monan_software.html).
 
-# Warning!!!
+The **MoNAn Manual** is available here on github in the manual folder or
+on [SocArXiv](https://osf.io/preprints/socarxiv/8q2xu/)
 
-The package is still under development, especially the documentation.
-When using the package, you might encounter bugs or errors, or you might
-not be able to do what you want. In that case please write the package
-maintainer under his institutional email address (requires using
-google).
+# Note from the developers
+
+As of 30 Aug 2023, we have a CRAN release of the package. Nevertheless,
+the package and the documentation might still have bugs or errors, or
+you might not be able to do what you want. In that case, or if you are
+unsure please write the package maintainer under his institutional email
+address. We are currently on version 0.1.3, released to CRAN in Feb
+2024.
 
 # Installation
 
-The package is under development. You can install the current
-development version of MoNAn from GitHub using:
+You can install MoNAn either from CRAN or from GitHub.
+
+The advantage of installing from github is that you will always stay
+up-to-date with the latest developments, in particular, new
+functionality and effects. You can install the current version of MoNAn
+from GitHub using:
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("perblock/MoNAn")
+remotes::install_github("stocnet/MoNAn")
+```
+
+However, you can also get the (often slightly older) CRAN version with:
+
+``` r
+install.packages("MoNAn")
 ```
 
 # Example
