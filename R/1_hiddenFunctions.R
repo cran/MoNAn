@@ -26,10 +26,7 @@ checkProcessState <- function(state) {
   
   
   # extract nodeset names defined in edgelist
-  nodesets <- c()
-  nodesets[1] <- state[[dep.var]]$nodeSet[1]
-  nodesets[2] <- state[[dep.var]]$nodeSet[2]
-  nodesets[3] <- state[[dep.var]]$nodeSet[3]
+  nodesets <- state[[dep.var]]$nodeSet
   
   # do nodeset names from edgelist have a corresponding nodeset and are they of class 'nodeset.monan'?
   for (i in 1:length(nodesets)) {
@@ -75,6 +72,75 @@ checkProcessState <- function(state) {
 }
 
 
+# createInternalCache
+createInternalCache <-
+  function(processState,
+           resourceCovariates = NULL) {
+    cache <- list()
+    cacheObjectNames <- processState$dep.var
+    
+    for (name in cacheObjectNames) {
+      if (!(class(processState[[name]]) %in% c("network.monan", "edgelist.monan"))) {
+        stop(paste(name, "is not a network or edgelist."))
+      }
+      
+      nodeSet1 <- processState[[processState[[name]]$nodeSet[1]]]$ids
+      nodeSet2 <- processState[[processState[[name]]$nodeSet[2]]]$ids
+      nActors1 <- length(nodeSet1)
+      nActors2 <- length(nodeSet2)
+      
+      cache[[name]] <- list()
+      if (is(processState[[name]], "network.monan")) {
+        cache[[name]]$valuedNetwork <- processState[[name]]$data
+      }
+      if (is(processState[[name]], "edgelist.monan")) {
+        # create valued network from edge list
+        m <- matrix(0, nActors1, nActors2)
+        
+        # create weighted resource networks
+        m.resource <-
+          lapply(resourceCovariates, function(v) {
+            matrix(0, nrow = nActors1, ncol = nActors2)
+          })
+        names(m.resource) <- resourceCovariates
+        
+        for (i in 1:processState[[name]]$size[1]) {
+          sender <- processState[[name]]$data[i, 1]
+          receiver <- processState[[name]]$data[i, 2]
+          v <- m[sender, receiver]
+          m[sender, receiver] <- v + 1
+          
+          # cache network * resource covariate matrices
+          for (ressCovar in resourceCovariates) {
+            v <- m.resource[[ressCovar]][sender, receiver]
+            m.resource[[ressCovar]][sender, receiver] <- v +
+              processState[[ressCovar]]$data[i]
+          }
+        }
+        cache[[name]]$valuedNetwork <- m
+        cache[[name]]$resourceNetworks <- m.resource
+        
+        # edge ids
+        edgeSet <- processState[[processState[[name]]$nodeSet[3]]]$ids
+        nEdges <- length(edgeSet)
+      }
+      if (nActors1 == nActors2) {
+        cache[[name]]$netFlowsNetwork <-
+          cache[[name]]$valuedNetwork - t(cache[[name]]$valuedNetwork)
+        cache[[name]]$minNetwork <-
+          matrix(
+            mapply(min, cache[[name]]$valuedNetwork, t(cache[[name]]$valuedNetwork)),
+            nActors1,
+            nActors2
+          )
+        diag(cache[[name]]$minNetwork) <- 0
+      }
+    } # end for loop
+    
+    cache
+  }
+
+
 # getCovarianceMatrix
 getCovarianceMatrix <- function(statistics) {
   meanStatistics <- colMeans(statistics)
@@ -91,6 +157,19 @@ getCovarianceMatrix <- function(statistics) {
   return(covMatrix)
 }
 
+# getNetStatsFromDeps
+getNetStatsFromDeps <- function(dep.var, oneDep, ans, effects){
+  depState <- ans$state
+  depState[[dep.var]] <- oneDep
+  
+  resCovsInCache <- names(ans$cache[[dep.var]]$resourceNetworks)
+  if(is.null(resCovsInCache)){
+    depCache <- createInternalCache(depState)
+  } else {
+    depCache <- createInternalCache(depState, resourceCovariates = resCovsInCache)
+  }
+  getNetworkStatistics(dep.var, depState, depCache, effects)
+}
 
 # getNetworkStatistics
 getNetworkStatistics <- function(dep.var, state, cache, effects) {
@@ -139,8 +218,40 @@ runPhase1 <- function(dep.var,
                       gainN1,
                       multinomialProposal = FALSE,
                       allowLoops,
-                      verbose = FALSE) {
+                      verbose = FALSE,
+                      parallel,
+                      cpus) {
   # simulate statistic matrix
+  
+  # initialize parallel computing
+  if (parallel && cpus > 1) {
+    sfInit(parallel = TRUE, cpus = cpus)
+    # TODO. Replace this long command with sfLibrary("NetDist") once the package is packaged
+    sfLibrary("MoNAn", character.only=TRUE)
+  } else {
+    parallel <- FALSE
+  }
+  
+  if(parallel){
+    cat(paste("Phase 1: \n burn-in", burnInN1, "steps\n", 
+              iterationsN1, " iterations\n thinning", 
+              thinningN1, "\n", cpus, "cpus\n"))
+    
+    statisticsMatrix <- sfLapply(1:cpus, simulateStatisticVectors, 
+                                 dep.var = dep.var, 
+                                 state = state, 
+                                 cache = cache, 
+                                 effects = effects, 
+                                 initialParameters = initialParameters, 
+                                 burnIn = burnInN1, 
+                                 iterations = round(iterationsN1 / cpus), 
+                                 thinning = thinningN1, 
+                                 multinomialProposal = multinomialProposal, 
+                                 allowLoops, 
+                                 verbose = verbose)
+    statisticsMatrix <- Reduce("rbind", statisticsMatrix)
+    sfStop()
+  } else {
   statisticsMatrix <-
     simulateStatisticVectors(
       dep.var,
@@ -155,6 +266,7 @@ runPhase1 <- function(dep.var,
       allowLoops,
       verbose = verbose
     )
+  }
 
   # calculate covariance matric
   covarianceMatrix <- getCovarianceMatrix(statisticsMatrix)
@@ -211,7 +323,6 @@ runPhase2 <- function(dep.var,
     parallel <- FALSE
   }
 
-
   # TODO PARALLEL: n burn-ins with n states
   # burn in
   if (parallel) {
@@ -250,7 +361,10 @@ runPhase2 <- function(dep.var,
   parameters <- initialParameters
   for (i in 1:nsubN2) {
     if (verbose) {
-      cat(paste("Starting sub phase", i, "\n"))
+      cat(paste("\n"))
+      cat(paste0("Sub phase", i, ":\n burn-in ", burnInN2, " steps\n ", 
+                iterations, " iterations\n thinning ", 
+                thinningN2, "\n ", cpus, " cpus\n"))
     }
 
     # TODO PARALLEL: sample n chains and pass averaged parameters 
@@ -313,6 +427,7 @@ runPhase2 <- function(dep.var,
     }
 
     if (verbose) {
+      cat(paste("\n"))
       cat(paste("New parameters:\n"))
     }
     if (verbose) {
@@ -320,7 +435,7 @@ runPhase2 <- function(dep.var,
     }
 
     # determine number of iterations
-    iterations <- iterations * 1.75
+    iterations <- round(iterations * 1.75)
     # determine gain
     gain <- gain / 2
   }
@@ -436,9 +551,12 @@ runPhase3 <- function(dep.var,
 
   # create empty object for the deps
   deps <- NULL
-
+  
+  # extract only the dependent var to return from deps
   if (returnDeps) {
-    deps <- stats[[2]]
+    deps <- lapply(stats[[2]], function(x){
+      x$state[[dep.var]]
+    })
   }
 
   # returns covariance matrix and convergence statistics
@@ -500,9 +618,27 @@ runSubphase2 <- function(dep.var,
     cat("\n")
   }
 
-  # return mean of the parameters
+  ### return mean of the parameters discarding the 
+  ### initial dk that are clearly before convergence
+  # find the smaller of two numbers: 
+  # 25% of the number of iterations OR
+  # when the expected residual of the step-size is less than 0.05
+  dk1 <- round(iterations/4)
+  
+  dk2 <- 1
+  res <- (1-gain)
+  
+  repeat{
+    if(dk2 > 100) break
+    if(res < 0.05) break
+    dk2 <- dk2 + 1
+    res <- res*(1-gain)
+  }
+  
+  dk <- min(dk1, dk2)
+  
   return(list(
-    parameters = colMeans(parameters),
+    parameters = colMeans(parameters[dk:iterations,]),
     state = state,
     cache = cache
   ))

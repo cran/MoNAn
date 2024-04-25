@@ -3,26 +3,28 @@
 \name{gofMobilityNetwork}
 \alias{gofMobilityNetwork}
 \alias{gofDistributionNetwork}
+\alias{monanGOF}
 \alias{plot.gof.stats.monan}
 \title{gofMobilityNetwork}
 \usage{
-gofMobilityNetwork(ans, simulations, gofFunction, lvls = NULL)
+gofMobilityNetwork(ans, gofFunction, lvls = NULL, simulations = NULL)
 
-gofDistributionNetwork(ans, simulations, gofFunction, lvls = NULL)
+gofDistributionNetwork(ans, gofFunction, lvls = NULL, simulations = NULL)
+
+monanGOF(ans, gofFunction, lvls = NULL, simulations = NULL)
 
 \method{plot}{gof.stats.monan}(x, lvls, ...)
 }
 \arguments{
-\item{ans}{An object of class "result.monan" resulting from an estimation with the function \code{\link[=estimateMobilityNetwork]{estimateMobilityNetwork()}}.}
-
-\item{simulations}{The simulated outcomes with which the observed statistics are compared.
-Usually, they are stored in the ans$deps, in case deps = TRUE was specified in the
-estimation.}
+\item{ans}{An object of class "result.monan" resulting from an estimation
+with the function \code{\link[=estimateMobilityNetwork]{estimateMobilityNetwork()}} using the option deps = TRUE.}
 
 \item{gofFunction}{A gof function that specifies which auxiliary outcome should be used,
 e.g., "getIndegree" or "getTieWeights".}
 
 \item{lvls}{The values for which the gofFunction should be calculated/plotted.}
+
+\item{simulations}{outdated parameter, no need to specify}
 
 \item{x}{An object of class "gof.stats.monan".}
 
@@ -42,18 +44,20 @@ statistics are well captured by the model. The logic behind gof testing for netw
 Hunter et al. (2008) and Lospinoso and Snijders (2019).
 }
 \examples{
+\donttest{
 # goodness of fit
 myGofIndegree <- gofMobilityNetwork(ans = myResDN, 
-                                        simulations = myResDN$deps, 
-                                        gofFunction = getIndegree, 
-                                        lvls = 1:100)
+                                    gofFunction = getIndegree, 
+                                    lvls = 1:100)
 
 myGofTieWeight <- gofMobilityNetwork(ans = myResDN, 
-                                         simulations = myResDN$deps, 
-                                         gofFunction = getTieWeights, 
-                                         lvls = 1:30)
+                                     gofFunction = getTieWeights, 
+                                     lvls = 1:30)
+}
+\donttest{
 plot(myGofIndegree,  lvls = 20:70)
 plot(myGofTieWeight, lvls = 1:15)
+}
 }
 \references{
 Hunter, D. R., Goodreau, S. M., & Handcock, M. S. (2008). Goodness of fit of social network models.
