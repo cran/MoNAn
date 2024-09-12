@@ -1,26 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## Imortant:
-
-This is version 1.0.0 of MoNAn. This update includes many changes,
-including some that mean old code written for older versions will not
-work anymore!
-
-Code use has been simplified; the most important changes are:
-
-- the cache is now hidden from the user and does not need to be create
-  or specified in functions anymore
-
-- there is a new way to specify the model with createEffects and
-  addEffect
-
-- in gofMobilityNetwork there is no need to specify “simulations”
-  anymore
-
-- new way to generate the process state using monanDataCreate
-
-# MoNAn
+# MoNAn <img src="https://raw.githubusercontent.com/stocnet/MoNAn/main/MoNAn_logo.png" align="right" width="150"/>
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -51,16 +32,34 @@ Announcements about workshops etc. can be found
 The **MoNAn Manual** is available here on github in the manual folder or
 on [SocArXiv](https://osf.io/preprints/socarxiv/8q2xu/)
 
-# Note from the developers
+## Note from the developers
+
+This is version 1.1.0 of MoNAn (Sep 2024). The update to version 1.0.0
+(March 2024) included many changes, including some that mean code
+written for older versions will not work anymore!
+
+Code use for version 1.0.0 has been simplified; the most important
+changes are:
+
+- the cache is now hidden from the user and does not need to be create
+  or specified in functions anymore
+
+- there is a new way to specify the model with createEffects and
+  addEffect
+
+- in gofMobilityNetwork there is no need to specify “simulations”
+  anymore
+
+- new way to generate the process state using monanDataCreate
 
 As of 30 Aug 2023, we have a CRAN release of the package. Nevertheless,
-the package and the documentation might still have bugs or errors, or
-you might not be able to do what you want. In that case, or if you are
-unsure please write the package maintainer under his institutional email
-address.
+we cannot guarantee that the package and the documentation is free of
+bugs or errors; further, you might not be able to do what you want. In
+that case, or if you are unsure please write the package maintainer
+under his institutional email address.
 
-We are currently (Mar 2024) on version 1.0.0 on github. Version 0.1.3
-was released to CRAN in Feb 2024.
+We are currently (Sep 2024) on version 1.1.0 on github. Version 1.1.0
+will be released to CRAN in Sep 2024.
 
 # Installation
 
@@ -205,7 +204,8 @@ name and any additional parameters it needs.
 # create an effects object
 myEffects <- createEffects(myState)
 myEffects <- addEffect(myEffects, loops)
-myEffects <- addEffect(myEffects, reciprocity_min)
+myEffects <- addEffect(myEffects, concentration_AC, alpha = 4)
+myEffects <- addEffect(myEffects, reciprocity_AC, alpha = 4)
 myEffects <- addEffect(myEffects, dyadic_covariate, attribute.index = "sameRegion")
 myEffects <- addEffect(myEffects, alter_covariate, attribute.index = "size")
 myEffects <- addEffect(myEffects, resource_covar_to_node_covar,
@@ -218,7 +218,8 @@ myEffects <- addEffect(myEffects, loops_resource_covar, resource.attribute.index
 # attribute.index & resource.attribute.index:
 myEffects <- createEffects(myState) |>
   addEffect(loops) |>
-  addEffect(reciprocity_min) |>
+  addEffect(concentration_AC, alpha = 4) |>
+  addEffect(reciprocity_AC, alpha = 4) |>
   addEffect(dyadic_covariate, node.attribute = "sameRegion") |>
   addEffect(alter_covariate, node.attribute = "size") |>
   addEffect(resource_covar_to_node_covar,
@@ -231,7 +232,8 @@ myEffects
 #> Effects
 #>  effect name                  cov. organisations cov. people  parameter 
 #>  loops                                -               -           -     
-#>  reciprocity_min                      -               -           -     
+#>  concentration_AC                     -               -           4     
+#>  reciprocity_AC                       -               -           4     
 #>  dyadic_covariate                 sameRegion          -           -     
 #>  alter_covariate                     size             -           -     
 #>  resource_covar_to_node_covar       region           sex          -     
@@ -305,94 +307,6 @@ myResDN <- monanEstimate(
   returnDeps = TRUE,
   fish = FALSE
 )
-#> Starting phase 1
-#> R Version:  R version 4.3.1 (2023-06-16)
-#> snowfall 1.84-6.3 initialized (using snow 0.4-4): parallel execution on 4 CPUs.
-#> Library MoNAn loaded.
-#> Library MoNAn loaded in cluster.
-#> Phase 1: 
-#>  burn-in 12614 steps
-#>  48  iterations
-#>  thinning 6307 
-#>  4 cpus
-#> 
-#> Stopping cluster
-#> Starting phase 2
-#> snowfall 1.84-6.3 initialized (using snow 0.4-4): parallel execution on 4 CPUs.
-#> Library MoNAn loaded.
-#> Library MoNAn loaded in cluster.
-#> 
-#> Sub phase1:
-#>  burn-in 12614 steps
-#>  50 iterations
-#>  thinning 6307
-#>  4 cpus
-#> 
-#> New parameters:
-#> loops 
-#>  2.35671714042876 
-#>  reciprocity_min 
-#>  0.841180998558736 
-#>  dyadic_covariate sameRegion 
-#>  1.66900791985062 
-#>  alter_covariate size 
-#>  0.0376992925190262 
-#>  resource_covar_to_node_covar region sex 
-#>  -0.69056309719851 
-#>  loops_resource_covar sex 
-#>  -0.712033493718721 
-#> 
-#> Sub phase2:
-#>  burn-in 12614 steps
-#>  88 iterations
-#>  thinning 6307
-#>  4 cpus
-#> 
-#> New parameters:
-#> loops 
-#>  2.58352757124622 
-#>  reciprocity_min 
-#>  0.802446745369365 
-#>  dyadic_covariate sameRegion 
-#>  1.68393282434589 
-#>  alter_covariate size 
-#>  0.0369954708799643 
-#>  resource_covar_to_node_covar region sex 
-#>  -0.663292740436628 
-#>  loops_resource_covar sex 
-#>  -0.385951029245808 
-#> 
-#> Sub phase3:
-#>  burn-in 12614 steps
-#>  154 iterations
-#>  thinning 6307
-#>  4 cpus
-#> 
-#> New parameters:
-#> loops 
-#>  2.6144780296132 
-#>  reciprocity_min 
-#>  0.820270450132527 
-#>  dyadic_covariate sameRegion 
-#>  1.69265061362288 
-#>  alter_covariate size 
-#>  0.0366425475638277 
-#>  resource_covar_to_node_covar region sex 
-#>  -0.643065310837314 
-#>  loops_resource_covar sex 
-#>  -0.393933228691711
-#> 
-#> Stopping cluster
-#> Starting phase 3:
-#>  burn-in 37842 steps
-#>  500  iterations
-#>  thinning 12614 
-#>  4 cpus
-#> snowfall 1.84-6.3 initialized (using snow 0.4-4): parallel execution on 4 CPUs.
-#> Library MoNAn loaded.
-#> Library MoNAn loaded in cluster.
-#> 
-#> Stopping cluster
 ```
 
 In case pseudo-likelihood estimates have been obtained previously, this
@@ -415,7 +329,7 @@ estimates), another run is necessary.
 
 ``` r
 max(abs(myResDN$convergenceStatistics))
-#> [1] 0.09635964
+#> [1] 0.06074141
 ```
 
 If convergence is too high, update algorithm, re-run estimation with
@@ -442,7 +356,7 @@ myResDN <- monan07(
 ``` r
 # check convergence
 max(abs(myResDN$convergenceStatistics))
-#> [1] 0.09635964
+#> [1] 0.06074141
 ```
 
 In case convergence is still poor, updating the algorithm might be
@@ -455,19 +369,21 @@ convergence ratio. All values in the final column should be below 0.1
 myResDN
 #> Results
 #>                                   Effects   Estimates StandardErrors
-#> 1                                   loops  2.61447803     0.18107343
-#> 2                         reciprocity_min  0.82027045     0.17508278
-#> 3             dyadic_covariate sameRegion  1.69265061     0.11615797
-#> 4                    alter_covariate size  0.03664255     0.02306784
-#> 5 resource_covar_to_node_covar region sex -0.64306531     0.16722402
-#> 6                loops_resource_covar sex -0.39393323     0.21452057
+#> 1                                   loops  2.93847918     0.16752184
+#> 2                      concentration_AC 4  1.39905831     0.20998661
+#> 3                        reciprocity_AC 4  0.99264953     0.17453719
+#> 4             dyadic_covariate sameRegion  0.53396969     0.10329601
+#> 5                    alter_covariate size  0.01579074     0.01849084
+#> 6 resource_covar_to_node_covar region sex -0.63996642     0.15384288
+#> 7                loops_resource_covar sex -0.35367248     0.21448765
 #>   Convergence
-#> 1  0.04961280
-#> 2  0.03348093
-#> 3  0.01693830
-#> 4 -0.06503536
-#> 5  0.09635964
-#> 6 -0.07243402
+#> 1  0.02771634
+#> 2 -0.04310385
+#> 3 -0.02941513
+#> 4 -0.02808840
+#> 5  0.01195872
+#> 6 -0.06074141
+#> 7  0.04756056
 ```
 
 ## Diagnostics of the estimated model
@@ -481,7 +397,7 @@ problematic and indicate that a higher thinning is needed.
 
 ``` r
 autoCorrelationTest(myResDN)
-#> [1] 0.0949095
+#> [1] 0.09948763
 ```
 
 The output of extractTraces indicates the correlation of statistics
@@ -496,7 +412,7 @@ par(mfrow = c(1,2))
 plot(traces)
 ```
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" /><img src="man/figures/README-unnamed-chunk-18-2.png" width="100%" /><img src="man/figures/README-unnamed-chunk-18-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" /><img src="man/figures/README-unnamed-chunk-18-2.png" width="100%" /><img src="man/figures/README-unnamed-chunk-18-3.png" width="100%" /><img src="man/figures/README-unnamed-chunk-18-4.png" width="100%" />
 
 ## Score-tests to check model specification
 
@@ -513,7 +429,7 @@ test_ME.2 <- scoreTest(myResDN, myEffects2)
 test_ME.2
 #> Results
 #>            Effects pValuesParametric pValuesNonParametric
-#> 1 transitivity_min      4.790818e-09                    0
+#> 1 transitivity_min         0.1865437                0.898
 #> 
 #>  Parametric p-values: small = more significant 
 #>  Non-parametric p-values: further away from 0.5 = more significant
@@ -553,7 +469,7 @@ parameters.
 mySimDN <- monanSimulate(
   myState,
   myEffects,
-  parameters = c(2, 1, 1.5, 0.1, -1, -0.5),
+  parameters = c(2, 1, 1.5, 0.5, 0.1, -1, -0.5),
   allowLoops = TRUE,
   burnin = 45000,
   thinning = 15000,
