@@ -3,7 +3,7 @@
   if (!interactive()) return()
   base::packageStartupMessage(
     pkgname, " (Mobility Network Analysis): version ", 
-    utils::packageVersion("MoNAn"), "\n", "\n",
-    "Please note syntax changes from version 1.0.0 (released March 2024)."
+    utils::packageVersion(pkgname), "\n", "\n",
+    "Version 2 runs the simulations in C++ with much shorter estimation times."
   )
 }

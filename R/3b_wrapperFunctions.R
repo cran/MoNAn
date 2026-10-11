@@ -1,9 +1,48 @@
 ####### wrapperFunctions
 
 
+#' addDummyEffects
+#' 
+#' A function to add one [alter_covariate] effect for each location
+#' dummy variable included in the state. Dummy variables in the state object
+#' are named "dummyXX", where XX can take any value.
+#' This is particularly useful when including fixed effects for each location
+#' to explicitly model the indegree of each location.
+#'
+#' @param effectsObject The monan Effects object to which the dummy
+#' location effects should be added.
+#' @param state The monan state (data) object that the effects object applies to
+#'
+#' @return An object of type effectsList.monan
+#' @export
+#'
+#' @examples
+#' myEffects <- createEffects(myState) |>
+#'   addEffect(loops) |>
+#'   addDummyEffects(myState)
+addDummyEffects <- function(effectsObject, state){
+  stateName <- deparse(substitute(state))
+  if(stateName != effectsObject$state){
+    stop("in addDummyEffects: this is not the state specified in the effectsObject")
+  }
+  dummies_to_include <- names(state)[grep("dummy", names(state))]
+  for (i in dummies_to_include){
+    effectsObject <- addEffect(effectsObject, 
+                               alter_covariate, 
+                               node.attribute = i)
+  }
+  effectsObject
+}
+
+#' addFixedEffects
+#'
+#' @rdname addDummyEffects
+addFixedEffects <- addDummyEffects
+
+
 #' addEffect
 #' 
-#' A function to add addtional effects to a moman effects object
+#' A function to add additional effects to a monan effects object
 #'
 #' @param effectsObject The monan Effects object to which another
 #' effect should be added.
@@ -76,7 +115,7 @@ createEffects <- function(state){
 
 #' monanDataCreate
 #'
-#' A function to create a moman process state, i.e., 
+#' A function to create a monan process state, i.e., 
 #' a MoNAn object that stores all information
 #' about the data that will be used in the estimation. This includes the
 #' outcome variable (edgelist), the nodesets, and all covariates.
@@ -85,12 +124,17 @@ createEffects <- function(state){
 #' This must include exactly one edgelist (dependent variable) and the
 #' two nodesets associated with the edgelist.
 #' Further allowed elements are (monadic or dyadic) covariates of locations and people
-#'
+#' @param fixedEffectDummies Add dummy variable for each location (minus the first)
+#' in the process state (data object), so that fixed effects to control the
+#' indegree of every location can be modelled directly. The dummies are named
+#' "dummy2", "dummy3", etc., and can be added to the model with
+#' [addDummyEffects()] (or its alias [addFixedEffects()]).
+#' 
 #' @return An object of class "processState.monan".
 #' @export
 #'
 #' @examples
-#' #' # create objects (which are later combined to the process state)
+#' # create objects (which are later combined to the process state)
 #' transfers <- createEdgelist(mobilityEdgelist,
 #'   nodeSet = c("organisations", "organisations", "people")
 #' )
@@ -106,31 +150,51 @@ createEffects <- function(state){
 #' 
 #' monanDataCreate(transfers, people, organisations, 
 #'                 sameRegion, region, size, sex)
-monanDataCreate <- function(...){
-  
-  # create the named list to be transferred to createProcessState
+monanDataCreate <- function(..., fixedEffectDummies = FALSE){
   varnames <- unlist(lapply(substitute(list(...))[-1], deparse))
   elements <- list(...)
   names(elements) <- varnames
-  
-  # extract dependent variable
   dep.var <- NULL
   for (i in 1:length(elements)) {
     e <- elements[[i]]
-    if (inherits(e, "edgelist.monan")){
-      if(is.null(dep.var)) {
+    if (inherits(e, "edgelist.monan")) {
+      if (is.null(dep.var)) {
         dep.var <- names(elements)[i]
-      } else {
+        edgelist <- e
+      }
+      else {
         stop("More than one edgelist included; only one dependent variable possible")
       }
     }
   }
-  if(is.null(dep.var)){
+  if (is.null(dep.var)) {
     stop("No dependent variable (edgelist) included in input objects")
   }
   
-  # transfer both to createProcessState
-  state <- createProcessState(elements, dep.var)
+  if (!fixedEffectDummies){
+    state <- createProcessState(elements, dep.var)
+  } else {
+    
+    createDummy <- function(length, position){
+      vec <- rep(0, length)
+      vec[position] <- 1
+      vec
+    }
+    
+    length <- length(elements[[edgelist$nodeSet[1] ]]$ids)
+    dummies <- lapply(2:length, function(i) createDummy(length, i))
+    
+    fixedEffects <- lapply(dummies, monadicCovar, 
+                           nodes = edgelist$nodeSet[1])
+    
+    dummy_name <- paste0("dummy", 2:length)
+    names(fixedEffects) <- dummy_name
+    
+    elements_FE <- c(elements, fixedEffects)
+    state <- createProcessState(elements_FE, dep.var)
+    
+  }
+  
   state
 }
 
