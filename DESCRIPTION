@@ -1,8 +1,8 @@
 Package: MoNAn
 Type: Package
 Title: Mobility Network Analysis
-Version: 2.0.0
-Date: 2026-10-11
+Version: 2.1.1
+Date: 2026-10-12
 Authors@R: c(person("Per", "Block", role = c("cre", "aut", "cph"), email = "block@soziologie.uzh.ch", 
         comment = c(ORCID = "0000-0002-7583-2392")), 
     person("Christoph", "Stadtfeld", role = "aut", comment = c(ORCID = "0000-0002-2704-2134")),
@@ -24,13 +24,13 @@ URL: https://github.com/stocnet/MoNAn
 BugReports: https://github.com/stocnet/MoNAn/issues
 Encoding: UTF-8
 LazyData: true
-Imports: snowfall (>= 1.84-6.2), methods, Rcpp
+Imports: methods, parallel, Rcpp
 LinkingTo: Rcpp
 Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2026-10-11 10:42:50 UTC; per
+Packaged: 2026-10-12 14:37:31 UTC; per
 Author: Per Block [cre, aut, cph] (ORCID:
     <https://orcid.org/0000-0002-7583-2392>),
   Christoph Stadtfeld [aut] (ORCID:
@@ -40,4 +40,4 @@ Author: Per Block [cre, aut, cph] (ORCID:
   Jingying Wang [aut]
 Maintainer: Per Block <block@soziologie.uzh.ch>
 Repository: CRAN
-Date/Publication: 2026-10-11 13:41:02 UTC
+Date/Publication: 2026-10-12 15:20:24 UTC
